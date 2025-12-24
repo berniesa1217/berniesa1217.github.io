@@ -1381,46 +1381,111 @@ decorRow.addEventListener('pointerdown', (e)=>{ if(e.pointerType==='touch') e.pr
       if(e.code === 'Space') clearAll();
     });
 
- <!-- 音樂按鈕 -->
-<button id="musicBtn" style="padding:10px 20px; font-size:16px;">🎵 播放音樂</button>
-
-<script>
-/* =========================
-       MUSIC (MP3版)
+   /* =========================
+       MUSIC (高潮段 + 裝飾音)
 ========================= */
-<!-- 音樂按鈕 -->
-<button id="musicBtn" style="padding:10px 20px; font-size:16px; margin:10px;">
-  🎵 播放音樂
-</button>
+let isPlaying = false;
+const musicBtn = document.getElementById('musicBtn');
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+let melodyTimer = null;
+let currentNoteIndex = 0;
 
-<script>
-  // === Music 模組 (MP3) ===
-  const musicBtn = document.getElementById('musicBtn');
-  let isPlaying = false;
+// 高潮段 + 副旋律裝飾音
+const melodyNotes = [
+  // 主旋律
+  { freq: 659.25, duration:0.4, gain:0.12 }, // E5
+  { freq: 698.46, duration:0.4, gain:0.12 }, // F5
+  { freq: 783.99, duration:0.5, gain:0.15 }, // G5
+  { freq: 698.46, duration:0.4, gain:0.12 }, // F5
+  { freq: 659.25, duration:0.4, gain:0.12 }, // E5
+  { freq: 587.33, duration:0.4, gain:0.1  }, // D5
+  { freq: 659.25, duration:0.5, gain:0.15 }, // E5
+  { freq: 523.25, duration:0.4, gain:0.12 }, // C5
+  { freq: 440.00, duration:0.5, gain:0.1  }, // A4
+  { freq: 493.88, duration:0.4, gain:0.12 }, // B4
+  { freq: 523.25, duration:0.5, gain:0.12 }, // C5
 
-  // 請把 merry_christmas.mp3 放在同資料夾
-  const audio = new Audio('MerryChristmas.mp3');
-  audio.loop = true; // 循環播放
+  // 副旋律裝飾音（快速點綴）
+  { freq: 587.33, duration:0.2, gain:0.08 }, // D5 裝飾
+  { freq: 659.25, duration:0.2, gain:0.1  }, // E5 裝飾
+  { freq: 698.46, duration:0.25, gain:0.1 }, // F5 裝飾
+  { freq: 659.25, duration:0.25, gain:0.12 }, // E5 裝飾
+  { freq: 587.33, duration:0.2, gain:0.08 }, // D5 裝飾
+  { freq: 523.25, duration:0.3, gain:0.1 },   // C5 裝飾
+];
 
-  // 使用者點擊觸發播放
-  musicBtn.addEventListener('click', () => {
-    if (!isPlaying) {
-      // 播放
-      audio.play().catch(e => {
-        console.log('播放失敗，需要用戶互動', e);
-      });
-      musicBtn.textContent = "🔊 暫停音樂";
-      musicBtn.style.background = 'rgba(255,255,255,0.22)';
-    } else {
-      // 暫停
-      audio.pause();
-      audio.currentTime = 0; // 從頭開始
-      musicBtn.textContent = "🎵 播放音樂";
-      musicBtn.style.background = 'rgba(255,255,255,0.12)';
-    }
-    isPlaying = !isPlaying;
-  });
-</script>
+function stopMelodyTimer(){
+  if(melodyTimer){
+    clearTimeout(melodyTimer);
+    melodyTimer = null;
+  }
+}
+
+// 生動版 playNote：雙Oscillator + 微detune + 改良ADSR
+function playNote(frequency, duration, gainValue = 0.1){
+  if(!isPlaying || frequency === null) return;
+
+  const osc1 = audioContext.createOscillator();
+  const gain1 = audioContext.createGain();
+  osc1.type = 'triangle';
+  osc1.frequency.value = frequency;
+  osc1.connect(gain1);
+  gain1.connect(audioContext.destination);
+
+  const osc2 = audioContext.createOscillator();
+  const gain2 = audioContext.createGain();
+  osc2.type = 'sine';
+  osc2.frequency.value = frequency * 1.002;
+  osc2.connect(gain2);
+  gain2.connect(audioContext.destination);
+
+  const t0 = audioContext.currentTime;
+  const attack = 0.02;
+  const release = Math.max(0.1, duration * 0.5);
+
+  gain1.gain.setValueAtTime(0.0001, t0);
+  gain1.gain.exponentialRampToValueAtTime(gainValue, t0 + attack);
+  gain1.gain.exponentialRampToValueAtTime(0.0001, t0 + duration + release);
+
+  gain2.gain.setValueAtTime(0.0001, t0);
+  gain2.gain.exponentialRampToValueAtTime(gainValue*0.7, t0 + attack);
+  gain2.gain.exponentialRampToValueAtTime(0.0001, t0 + duration + release);
+
+  osc1.start(t0);
+  osc1.stop(t0 + duration + release);
+  osc2.start(t0);
+  osc2.stop(t0 + duration + release);
+}
+
+function scheduleNext(){
+  if(!isPlaying) return;
+  const note = melodyNotes[currentNoteIndex];
+  playNote(note.freq, note.duration, note.gain);
+
+  currentNoteIndex = (currentNoteIndex + 1) % melodyNotes.length;
+
+  const gapMs = 10 + Math.random()*10;
+  melodyTimer = setTimeout(scheduleNext, Math.max(50, note.duration*1000 + gapMs));
+}
+
+musicBtn.addEventListener('click', async ()=>{
+  if(audioContext.state === 'suspended'){
+    try{ await audioContext.resume(); }catch(e){}
+  }
+  isPlaying = !isPlaying;
+
+  if(isPlaying){
+    musicBtn.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 18V6l12-2v12"/><path fill="currentColor" d="M7.5 20.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/><path fill="currentColor" d="M19.5 18.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>`;
+    musicBtn.style.background = 'rgba(255,255,255,.22)';
+    stopMelodyTimer();
+    currentNoteIndex = 0;
+    scheduleNext();
+  }else{
+    musicBtn.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 18V6l12-2v12"/><path fill="currentColor" d="M7.5 20.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/><path fill="currentColor" d="M19.5 18.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>`;
+    musicBtn.style.background = 'rgba(255,255,255,.12)';
+    stopMelodyTimer();
+  }
+});
 
 /* =========================
        SIGNATURE
