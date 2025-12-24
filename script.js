@@ -1,6 +1,19 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>互動聖誕樹</title>
+<style>
+  body { margin: 0; background: #001; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
+  canvas { display: block; touch-action: none; }
+  #controls { color: white; margin: 5px; }
+  button { font-size: 16px; margin-left: 10px; }
+</style>
+</head>
+<body>
 <canvas id="canvas"></canvas>
 <canvas id="snow"></canvas>
-<div>
+<div id="controls">
   燈數: <span id="count">0</span>
   <button onclick="clearLights()">清除燈</button>
 </div>
@@ -10,26 +23,42 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const countEl = document.getElementById("count");
 
-canvas.width = 640;
-canvas.height = 760;
-
-const cx = canvas.width / 2;
-const treeBaseY = 120;
+let cx, treeBaseY;
 let lights = [];
 
-/* ===== 點擊放燈 ===== */
-canvas.addEventListener("click", (e) => {
-  const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight * 0.8; // 高度佔螢幕80%
+  cx = canvas.width / 2;
+  treeBaseY = canvas.height * 0.15;
+  draw();
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 
-  // 限制在樹區域
-  if (y < treeBaseY || y > treeBaseY + 340) return;
+/* ===== 點擊/觸控放燈 ===== */
+function getPos(e) {
+  if (e.touches) {
+    return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  } else {
+    return { x: e.clientX, y: e.clientY };
+  }
+}
 
+function addLight(e) {
+  e.preventDefault();
+  const pos = getPos(e);
+  const x = pos.x;
+  const y = pos.y;
+
+  if (y < treeBaseY || y > treeBaseY + canvas.height * 0.45) return;
   lights.push({ x, y, color: randomColor() });
   countEl.textContent = lights.length;
   draw();
-});
+}
+
+canvas.addEventListener('click', addLight);
+canvas.addEventListener('touchstart', addLight, {passive:false});
 
 /* ===== 顏色 ===== */
 function randomColor() {
@@ -43,7 +72,6 @@ function drawTreeLayer(y, w, top, bottom) {
   g.addColorStop(0, top);
   g.addColorStop(1, bottom);
   ctx.fillStyle = g;
-
   ctx.beginPath();
   ctx.moveTo(cx, y);
   ctx.lineTo(cx - w / 2, y + w);
@@ -53,14 +81,15 @@ function drawTreeLayer(y, w, top, bottom) {
 }
 
 function drawTree() {
-  drawTreeLayer(treeBaseY, 160, "#1c5e40", "#144c33");
-  drawTreeLayer(treeBaseY + 70, 220, "#1f6f4a", "#165a3c");
-  drawTreeLayer(treeBaseY + 150, 280, "#238a5a", "#1a6e4b");
-  drawTreeLayer(treeBaseY + 230, 340, "#2ea36a", "#238a5a");
+  const h = canvas.height * 0.45;
+  drawTreeLayer(treeBaseY, h*0.36, "#1c5e40", "#144c33");
+  drawTreeLayer(treeBaseY + h*0.15, h*0.49, "#1f6f4a", "#165a3c");
+  drawTreeLayer(treeBaseY + h*0.28, h*0.55, "#238a5a", "#1a6e4b");
+  drawTreeLayer(treeBaseY + h*0.42, h*0.65, "#2ea36a", "#238a5a");
 
-  // 树干
+  // 樹干
   ctx.fillStyle = "#7a4a24";
-  ctx.fillRect(cx - 14, treeBaseY + 340, 28, 70);
+  ctx.fillRect(cx - 14, treeBaseY + h, 28, h*0.2);
 }
 
 /* ===== 燈 ===== */
@@ -88,9 +117,6 @@ function clearLights() {
   countEl.textContent = "0";
   draw();
 }
-
-/* 初始化 */
-draw();
 
 /* =====================
    ❄️ 雪花
