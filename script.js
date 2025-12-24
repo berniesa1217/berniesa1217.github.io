@@ -43,8 +43,14 @@ function drawTree() {
   drawTriangle(300, 200, 260);
   drawTriangle(300, 300, 320);
 
-  ctx.fillStyle = "#8d5524";
-  ctx.fillRect(285, 420, 30, 60);
+  // 树干
+ctx.fillStyle = "#8d5524";
+ctx.fillRect(
+  canvas.width / 2 - 15, // 正中间
+  300 + 320,             // 最后一层树的底部
+  30,
+  60
+);
 }
 
 function drawTriangle(x, y, w) {
