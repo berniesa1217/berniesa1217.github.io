@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>🎄 ✨</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- 雪花 -->
+  <canvas id="snow"></canvas>
+
+  <div class="container">
+    <div class="panel">
+      <h3>LIGHTS</h3>
+      <div id="count">0</div>
+      <p class="hint">點擊聖誕樹放燈</p>
+      <button onclick="clearLights()">重新開始</button>
+    </div>
+
+    <!-- 你的聖誕樹 canvas -->
+    <canvas id="canvas" width="640" height="760"></canvas>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
