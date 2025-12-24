@@ -1388,32 +1388,29 @@ decorRow.addEventListener('pointerdown', (e)=>{ if(e.pointerType==='touch') e.pr
 /* =========================
        MUSIC (MP3版)
 ========================= */
+<button id="musicBtn" style="padding:10px 20px; font-size:16px;">🎵 播放音樂</button>
+
+<script>
 let isPlaying = false;
 const musicBtn = document.getElementById('musicBtn');
 
-// 建立 Audio 物件，檔案名與 HTML 同資料夾
-const audio = new Audio('MerryChristmas.mp3'); // MP3檔案名稱
-audio.loop = true; // 循環播放
+// MP3 檔案要與 HTML 同資料夾
+const audio = new Audio('MerryChristmas.mp3');
+audio.loop = true;
 
-musicBtn.addEventListener('click', async ()=>{
-  isPlaying = !isPlaying;
-
-  if(isPlaying){
-    try{
-      // 確保瀏覽器允許播放
-      await audio.play();
-    }catch(e){
-      console.log('播放失敗，可能需要用戶互動觸發', e);
-    }
-    // 播放狀態顯示
+musicBtn.addEventListener('click', () => {
+  if (!isPlaying) {
+    audio.play().catch(e => {
+      console.log('播放失敗，需要用戶觸發', e);
+    });
     musicBtn.textContent = "🔊 暫停音樂";
     musicBtn.style.background = 'rgba(255,255,255,.22)';
-  }else{
+  } else {
     audio.pause();
-    audio.currentTime = 0; // 從頭播放
     musicBtn.textContent = "🎵 播放音樂";
     musicBtn.style.background = 'rgba(255,255,255,.12)';
   }
+  isPlaying = !isPlaying;
 });
 </script>
 
