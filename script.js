@@ -33,26 +33,30 @@ function randomColor() {
   return colors[Math.floor(Math.random() * colors.length)];
 }
 
-/* ===== 畫樹 ===== */
-function drawTree() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+/* 🌲 柔和树层 */
+function drawTreeLayer(y, w, top, bottom) {
+  const g = ctx.createLinearGradient(0, y, 0, y + w);
+  g.addColorStop(0, top);
+  g.addColorStop(1, bottom);
+  ctx.fillStyle = g;
 
-  ctx.fillStyle = "#1f8f55";
-  drawTriangle(320, 120, 220);
-  drawTriangle(320, 220, 260);
-  drawTriangle(320, 340, 300);
-
-  ctx.fillStyle = "#7a4a1f";
-  ctx.fillRect(305, 420, 30, 60);
-}
-
-function drawTriangle(x, y, size) {
   ctx.beginPath();
-  ctx.moveTo(x, y);
-  ctx.lineTo(x - size / 2, y + size);
-  ctx.lineTo(x + size / 2, y + size);
+  ctx.moveTo(cx, y);
+  ctx.lineTo(cx - w / 2, y + w);
+  ctx.lineTo(cx + w / 2, y + w);
   ctx.closePath();
   ctx.fill();
+}
+
+function drawTree() {
+  drawTreeLayer(120, 160, "#1c5e40", "#144c33");
+  drawTreeLayer(190, 220, "#1f6f4a", "#165a3c");
+  drawTreeLayer(270, 280, "#238a5a", "#1a6e4b");
+  drawTreeLayer(350, 340, "#2ea36a", "#238a5a");
+
+  // 树干
+  ctx.fillStyle = "#7a4a24";
+  ctx.fillRect(cx - 14, treeBaseY + 260, 28, 70);
 }
 
 /* ===== 燈 ===== */
