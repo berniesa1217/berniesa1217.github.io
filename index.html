@@ -1381,114 +1381,41 @@ decorRow.addEventListener('pointerdown', (e)=>{ if(e.pointerType==='touch') e.pr
       if(e.code === 'Space') clearAll();
     });
 
-   /* =========================
-       MUSIC
+ <!-- 音樂按鈕 -->
+<button id="musicBtn" style="padding:10px 20px; font-size:16px;">🎵 播放音樂</button>
+
+<script>
+/* =========================
+       MUSIC (MP3版)
 ========================= */
 let isPlaying = false;
 const musicBtn = document.getElementById('musicBtn');
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-let oscillator = null;
-let gainNode = null;
 
-// Merry Christmas Mr. Lawrence 前段旋律（32個音符）
-const melodyNotes = [
-  { freq: 523.25, duration: 0.5 },  // C5
-  { freq: 587.33, duration: 0.5 },  // D5
-  { freq: 659.25, duration: 1 },    // E5
-  { freq: 587.33, duration: 0.5 },  // D5
-  { freq: 523.25, duration: 0.5 },  // C5
-  { freq: 440.00, duration: 1 },    // A4
-  { freq: 493.88, duration: 0.5 },  // B4
-  { freq: 523.25, duration: 1 },    // C5
-  { freq: 523.25, duration: 0.5 },  // C5
-  { freq: 587.33, duration: 0.5 },  // D5
-  { freq: 659.25, duration: 1 },    // E5
-  { freq: 587.33, duration: 0.5 },  // D5
-  { freq: 523.25, duration: 0.5 },  // C5
-  { freq: 440.00, duration: 1 },    // A4
-  { freq: 493.88, duration: 0.5 },  // B4
-  { freq: 523.25, duration: 1 },    // C5
-  { freq: 659.25, duration: 0.5 },  // E5
-  { freq: 698.46, duration: 0.5 },  // F5
-  { freq: 784.00, duration: 1 },    // G5
-  { freq: 698.46, duration: 0.5 },  // F5
-  { freq: 659.25, duration: 0.5 },  // E5
-  { freq: 587.33, duration: 1 },    // D5
-  { freq: 523.25, duration: 0.5 },  // C5
-  { freq: 440.00, duration: 0.5 },  // A4
-  { freq: 493.88, duration: 1 },    // B4
-  { freq: 523.25, duration: 0.5 },  // C5
-  { freq: 587.33, duration: 0.5 },  // D5
-  { freq: 659.25, duration: 1 },    // E5
-  { freq: 587.33, duration: 0.5 },  // D5
-  { freq: 523.25, duration: 0.5 },  // C5
-  { freq: 440.00, duration: 1 },    // A4
-  { freq: 493.88, duration: 1 },    // B4
-  { freq: 523.25, duration: 1 },    // C5
-];
-
-let currentNoteIndex = 0;
-let melodyTimer = null;
-
-function stopMelodyTimer(){
-  if(melodyTimer){
-    clearTimeout(melodyTimer);
-    melodyTimer = null;
-  }
-}
-
-function playNote(frequency, duration){
-  if(!isPlaying) return;
-  oscillator = audioContext.createOscillator();
-  gainNode = audioContext.createGain();
-  oscillator.connect(gainNode);
-  gainNode.connect(audioContext.destination);
-
-  oscillator.frequency.value = frequency;
-  oscillator.type = 'sine';
-
-  const t0 = audioContext.currentTime;
-  const attack = 0.01;
-  const release = Math.max(0.05, duration * 0.35);
-
-  gainNode.gain.setValueAtTime(0.0001, t0);
-  gainNode.gain.exponentialRampToValueAtTime(0.10, t0 + attack);
-  gainNode.gain.exponentialRampToValueAtTime(0.0001, t0 + duration + release);
-
-  oscillator.start(t0);
-  oscillator.stop(t0 + duration + release);
-}
-
-function scheduleNext(){
-  if(!isPlaying) return;
-  const note = melodyNotes[currentNoteIndex];
-  playNote(note.freq, note.duration);
-
-  currentNoteIndex = (currentNoteIndex + 1) % melodyNotes.length;
-
-  const gapMs = 25;
-  melodyTimer = setTimeout(scheduleNext, Math.max(80, note.duration * 1000 + gapMs));
-}
+// 建立 Audio 物件，檔案名與 HTML 同資料夾
+const audio = new Audio('MerryChristmas.mp3'); // MP3檔案名稱
+audio.loop = true; // 循環播放
 
 musicBtn.addEventListener('click', async ()=>{
-  if(audioContext.state === 'suspended'){
-    try{ await audioContext.resume(); }catch(e){}
-  }
   isPlaying = !isPlaying;
 
   if(isPlaying){
-    musicBtn.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 18V6l12-2v12"/><path fill="currentColor" d="M7.5 20.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/><path fill="currentColor" d="M19.5 18.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>`;
+    try{
+      // 確保瀏覽器允許播放
+      await audio.play();
+    }catch(e){
+      console.log('播放失敗，可能需要用戶互動觸發', e);
+    }
+    // 播放狀態顯示
+    musicBtn.textContent = "🔊 暫停音樂";
     musicBtn.style.background = 'rgba(255,255,255,.22)';
-    stopMelodyTimer();
-    currentNoteIndex = 0;
-    scheduleNext();
   }else{
-    musicBtn.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 18V6l12-2v12"/><path fill="currentColor" d="M7.5 20.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/><path fill="currentColor" d="M19.5 18.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>`;
+    audio.pause();
+    audio.currentTime = 0; // 從頭播放
+    musicBtn.textContent = "🎵 播放音樂";
     musicBtn.style.background = 'rgba(255,255,255,.12)';
-    stopMelodyTimer();
-    try{ if(oscillator) oscillator.stop(); }catch(e){}
   }
 });
+</script>
 
 /* =========================
        SIGNATURE
