@@ -1,8 +1,10 @@
 body {
   margin: 0;
-  background: radial-gradient(circle at top, #2a3766, #070b1a);
+  background:
+    radial-gradient(circle at 50% 20%, #1a2450 0%, #06080f 70%);
   font-family: -apple-system, BlinkMacSystemFont, system-ui;
   color: white;
+  overflow: hidden;
 }
 
 .container {
@@ -50,3 +52,10 @@ button {
 canvas {
   flex: 1;
 }
+const snow = Array.from({ length: 180 }, () => ({
+  x: Math.random() * canvas.width,
+  y: Math.random() * canvas.height,
+  r: Math.random() * 1.8 + 0.4,   // 大小
+  s: Math.random() * 0.6 + 0.2,   // 下落速度
+  a: Math.random() * 0.6 + 0.2    // 透明度
+}));
