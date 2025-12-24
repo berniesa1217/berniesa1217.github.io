@@ -1,113 +1,20 @@
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-
-let lights = [];
-
-// ❄️ 雪花
-let snow = Array.from({ length: 120 }, () => ({
-  x: Math.random() * canvas.width,
-  y: Math.random() * canvas.height,
-  r: Math.random() * 2,
-  s: Math.random() * 1 + 0.5
-}));
-
-canvas.addEventListener("click", (e) => {
-  const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-
-  lights.push({ x, y, c: randomColor() });
-  updateCount();
-});
-
-function randomColor() {
-  const colors = ["#ff6b6b", "#ffd93d", "#6bcfff", "#c77dff", "#95f2d9"];
-  return colors[Math.floor(Math.random() * colors.length)];
-}
-
-function updateCount() {
-  document.getElementById("count").innerText =
-    `LIGHTS: ${lights.length}`;
-}
-
-function clearLights() {
-  lights = [];
-  updateCount();
-}
-
-// 🎄 圣诞树
-function drawTree() {
-  ctx.fillStyle = "#1f7a4d";
-
-  drawTriangle(300, 120, 200);
-  drawTriangle(300, 200, 260);
-  drawTriangle(300, 300, 320);
-
-  ctx.fillStyle = "#8d5524";
-  ctx.fillRect(285, 420, 30, 60);
-}
-
-function drawTriangle(x, y, w) {
-  ctx.beginPath();
-  ctx.moveTo(x, y);
-  ctx.lineTo(x - w / 2, y + w);
-  ctx.lineTo(x + w / 2, y + w);
-  ctx.closePath();
-  ctx.fill();
-}
-
-// 💡 灯
-function drawLights() {
-  lights.forEach(l => {
-    ctx.beginPath();
-    ctx.arc(l.x, l.y, 6, 0, Math.PI * 2);
-    ctx.fillStyle = l.c;
-    ctx.fill();
-  });
-}
-
-// ❄️ 雪
-function drawSnow() {
-  snow.forEach(f => {
-    ctx.fillStyle = `rgba(255,255,255,${f.a})`;
-    ctx.beginPath();
-    ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
-    ctx.fill();
-
-    f.y += f.s;
-    f.x += Math.sin(time * 0.3 + f.y * 0.01) * 0.15;
-
-    if (f.y > canvas.height) {
-      f.y = -5;
-      f.x = Math.random() * canvas.width;
-    }
-  });
-}
-
-function animate() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  drawSnow();     // ❄️ 最底层
-  drawTree();     // 🌲 树
-  drawLights();   // ✨ 灯
-
-  time += 0.03;
-  requestAnimationFrame(animate);
-}
-
-animate();
-
-}
+/***********************
+ * 聖誕樹 + 燈
+ ***********************/
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const countEl = document.getElementById("count");
 
 let lights = [];
 
+/* 點擊放燈 */
 canvas.addEventListener("click", (e) => {
   const rect = canvas.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
+
+  // 簡單限制：只在樹的範圍內放燈
+  if (y < 100 || y > 430) return;
 
   lights.push({
     x,
@@ -119,11 +26,19 @@ canvas.addEventListener("click", (e) => {
   draw();
 });
 
+/* 隨機燈色 */
 function randomColor() {
-  const colors = ["#ff6b6b", "#ffd93d", "#6bcfff", "#b28dff", "#6bff95"];
+  const colors = [
+    "#ff6b6b",
+    "#ffd93d",
+    "#6bcfff",
+    "#b28dff",
+    "#6bff95"
+  ];
   return colors[Math.floor(Math.random() * colors.length)];
 }
 
+/* 畫樹 */
 function drawTree() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -136,6 +51,7 @@ function drawTree() {
   ctx.fillRect(305, 420, 30, 60);
 }
 
+/* 三角形 */
 function drawTriangle(x, y, size) {
   ctx.beginPath();
   ctx.moveTo(x, y);
@@ -145,20 +61,26 @@ function drawTriangle(x, y, size) {
   ctx.fill();
 }
 
+/* 畫燈 */
 function drawLights() {
   lights.forEach(l => {
     ctx.beginPath();
     ctx.arc(l.x, l.y, 5, 0, Math.PI * 2);
     ctx.fillStyle = l.color;
+    ctx.shadowColor = l.color;
+    ctx.shadowBlur = 10;
     ctx.fill();
+    ctx.shadowBlur = 0;
   });
 }
 
+/* 主繪圖 */
 function draw() {
   drawTree();
   drawLights();
 }
 
+/* 清空 */
 function clearLights() {
   lights = [];
   countEl.textContent = "0";
@@ -167,7 +89,9 @@ function clearLights() {
 
 draw();
 
-/* ====== ❄️ 雪花系統 ====== */
+/***********************
+ * ❄️ 雪花動畫
+ ***********************/
 const snowCanvas = document.getElementById("snow");
 const sctx = snowCanvas.getContext("2d");
 
@@ -178,11 +102,12 @@ function resizeSnow() {
 resizeSnow();
 window.addEventListener("resize", resizeSnow);
 
-const flakes = Array.from({ length: 120 }, () => ({
+const flakes = Array.from({ length: 140 }, () => ({
   x: Math.random() * snowCanvas.width,
   y: Math.random() * snowCanvas.height,
   r: Math.random() * 2 + 1,
-  v: Math.random() * 1 + 0.5
+  speed: Math.random() * 1 + 0.5,
+  drift: Math.random() * 0.6 - 0.3
 }));
 
 function snowLoop() {
@@ -193,7 +118,9 @@ function snowLoop() {
   flakes.forEach(f => {
     sctx.moveTo(f.x, f.y);
     sctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
-    f.y += f.v;
+
+    f.y += f.speed;
+    f.x += f.drift;
 
     if (f.y > snowCanvas.height) {
       f.y = -5;
