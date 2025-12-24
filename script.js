@@ -1,11 +1,20 @@
+<canvas id="canvas"></canvas>
+<canvas id="snow"></canvas>
+<div>
+  燈數: <span id="count">0</span>
+  <button onclick="clearLights()">清除燈</button>
+</div>
+
+<script>
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const countEl = document.getElementById("count");
 
-/* ⚠️ 強制同步顯示尺寸與繪圖尺寸 */
 canvas.width = 640;
 canvas.height = 760;
 
+const cx = canvas.width / 2;
+const treeBaseY = 120;
 let lights = [];
 
 /* ===== 點擊放燈 ===== */
@@ -15,14 +24,9 @@ canvas.addEventListener("click", (e) => {
   const y = e.clientY - rect.top;
 
   // 限制在樹區域
-  if (y < 80 || y > 450) return;
+  if (y < treeBaseY || y > treeBaseY + 340) return;
 
-  lights.push({
-    x,
-    y,
-    color: randomColor()
-  });
-
+  lights.push({ x, y, color: randomColor() });
   countEl.textContent = lights.length;
   draw();
 });
@@ -33,7 +37,7 @@ function randomColor() {
   return colors[Math.floor(Math.random() * colors.length)];
 }
 
-/* 🌲 柔和树层 */
+/* 🌲 樹層 */
 function drawTreeLayer(y, w, top, bottom) {
   const g = ctx.createLinearGradient(0, y, 0, y + w);
   g.addColorStop(0, top);
@@ -49,14 +53,14 @@ function drawTreeLayer(y, w, top, bottom) {
 }
 
 function drawTree() {
-  drawTreeLayer(120, 160, "#1c5e40", "#144c33");
-  drawTreeLayer(190, 220, "#1f6f4a", "#165a3c");
-  drawTreeLayer(270, 280, "#238a5a", "#1a6e4b");
-  drawTreeLayer(350, 340, "#2ea36a", "#238a5a");
+  drawTreeLayer(treeBaseY, 160, "#1c5e40", "#144c33");
+  drawTreeLayer(treeBaseY + 70, 220, "#1f6f4a", "#165a3c");
+  drawTreeLayer(treeBaseY + 150, 280, "#238a5a", "#1a6e4b");
+  drawTreeLayer(treeBaseY + 230, 340, "#2ea36a", "#238a5a");
 
   // 树干
   ctx.fillStyle = "#7a4a24";
-  ctx.fillRect(cx - 14, treeBaseY + 260, 28, 70);
+  ctx.fillRect(cx - 14, treeBaseY + 340, 28, 70);
 }
 
 /* ===== 燈 ===== */
@@ -74,6 +78,7 @@ function drawLights() {
 
 /* ===== 主繪製 ===== */
 function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawTree();
   drawLights();
 }
@@ -84,18 +89,18 @@ function clearLights() {
   draw();
 }
 
-/* 初始化一定要畫一次 */
+/* 初始化 */
 draw();
 
 /* =====================
-   ❄️ 雪花（正常）
+   ❄️ 雪花
 ===================== */
 const snowCanvas = document.getElementById("snow");
 const sctx = snowCanvas.getContext("2d");
 
 function resizeSnow() {
-  snowCanvas.width = window.innerWidth;
-  snowCanvas.height = window.innerHeight;
+  snowCanvas.width = canvas.width;
+  snowCanvas.height = canvas.height;
 }
 resizeSnow();
 window.addEventListener("resize", resizeSnow);
@@ -128,3 +133,4 @@ function snowLoop() {
 }
 
 snowLoop();
+</script>
